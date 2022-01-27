@@ -3,6 +3,7 @@ from typing import Tuple, List
 
 import pytorch_lightning as pl
 import torch.optim
+import wandb
 from matplotlib import pyplot as plt
 from pytorch_lightning.utilities.types import STEP_OUTPUT, EPOCH_OUTPUT
 from torch import nn
@@ -144,7 +145,20 @@ class MultiDisDspritesVAE(pl.LightningModule):
         self.log("l1", l1, prog_bar=True)
         self.log("l2", l2, prog_bar=True)
         self.log("kld", kld, prog_bar=True)
+        if self.step_n % 49 == 0:
+            self.logger.experiment.log({
+                "reconstruct/examples": [
+                    wandb.Image(scene1[0], caption='Scene 1'),
+                    wandb.Image(scene2[0], caption='Scene 2'),
+                    wandb.Image(r1[0], caption='Recon 1'),
+                    wandb.Image(r2[0], caption='Recon 2'),
+                    wandb.Image(fist_obj[0], caption='Object 1'),
+                    wandb.Image(pair_obj[0], caption='Pair to O1'),
+                    wandb.Image(second_obj[0], caption='Object 2')
+                ]
+            })
         self.step_n += 1
+
         return total
 
     def configure_optimizers(self):

@@ -53,7 +53,7 @@ autoencoder = MultiDisDspritesVAE(**dict_args)
 # Callbacks
 # ------------------------------------------------------------
 
-monitor = 'combined_loss'
+monitor = 'total'
 
 # early stop
 patience = 5

@@ -42,9 +42,6 @@ class MultiDisDsprites(IterableDataset):
         for i in range(self.size):
             yield self.generate_sample()
 
-    def __len__(self):
-        return self.size
-
     def get_pair(self):
         """get random pair of objects that differ only in one feature"""
         idx = random.randint(0, self.dsprites_size - 1)
@@ -123,7 +120,7 @@ if __name__ == '__main__':
 
     batch = next(iter(loader))
 
-    scenes1, scenes2, fist_objs, pair_objs, second_objs = batch
+    scenes1, scenes2, fist_objs, pair_objs, second_objs, exchange_labels = batch
 
     fig, ax = plt.subplots(batch_size, 5, figsize=(5, 5))
     for i in range(batch_size):
