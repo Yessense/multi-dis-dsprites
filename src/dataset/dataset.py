@@ -118,16 +118,20 @@ if __name__ == '__main__':
     batch_size = 5
     loader = DataLoader(mdd, batch_size=batch_size)
 
-    batch = next(iter(loader))
+    for i, batch in enumerate(loader):
+        scenes1, scenes2, fist_objs, pair_objs, second_objs, exchange_labels = batch
+        if i % 1000 == 0:
 
-    scenes1, scenes2, fist_objs, pair_objs, second_objs, exchange_labels = batch
 
-    fig, ax = plt.subplots(batch_size, 5, figsize=(5, 5))
-    for i in range(batch_size):
-        for j, column in enumerate(batch[:-1]):
-            ax[i, j].imshow(column[i].detach().cpu().numpy().squeeze(0), cmap='gray')
-            ax[i, j].set_axis_off()
+            fig, ax = plt.subplots(batch_size, 5, figsize=(5, 5))
+            for i in range(batch_size):
+                for j, column in enumerate(batch[:-1]):
+                    ax[i, j].imshow(column[i].detach().cpu().numpy().squeeze(0), cmap='gray')
+                    ax[i, j].set_axis_off()
 
-    plt.show()
+            plt.show()
+
+        assert torch.all(scenes1 == fist_objs + second_objs)
+        assert torch.all(scenes2 == pair_objs + second_objs)
 
     print("Done")

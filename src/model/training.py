@@ -10,7 +10,7 @@ from src.model.scene_vae import MultiDisDspritesVAE
 import pytorch_lightning as pl
 from argparse import ArgumentParser
 
-wandb_logger = WandbLogger(project='multi-dis-dsprites-vae')
+wandb_logger = WandbLogger(project='multi-dis-dsprites-vae', log_model='all')
 
 # ------------------------------------------------------------
 # Parse args
@@ -22,7 +22,7 @@ parser = ArgumentParser()
 program_parser = parser.add_argument_group('program')
 program_parser.add_argument("--mnist_download_dir", type=str,
                             default='/home/yessense/PycharmProjects/mnist_scene/mnist_download')
-program_parser.add_argument("--dataset_size", type=int, default=10 ** 6)
+program_parser.add_argument("--dataset_size", type=int, default=10 **  6)
 program_parser.add_argument("--batch_size", type=int, default=256)
 
 # add model specific args
@@ -74,14 +74,16 @@ callbacks = [
 
 # trainer parameters
 profiler = 'simple'  # 'simple'/'advanced'/None
-max_epochs = 220
+max_epochs = 5
 gpus = 1
 
 # trainer
 trainer = pl.Trainer(gpus=gpus,
                      max_epochs=max_epochs,
                      profiler=profiler,
-                     callbacks=callbacks,
                      limit_val_batches=0.0,
-                     logger=wandb_logger)
+                     callbacks=callbacks,
+                     logger=wandb_logger,
+                     # checkpoint_callback=checkpoint_callback)
+                     )
 trainer.fit(autoencoder, loader)

@@ -92,14 +92,16 @@ class MultiDisDspritesVAE(pl.LightningModule):
     def encode_scene(self, z1, z2):
         batch_size = z1.shape[0]
         masks = [mask.repeat(batch_size, 1).to(self.device) for mask in self.obj_placeholders]
+
+        # choices -> (-1, 1024)
         choices = torch.randint(2, (batch_size,)).bool().unsqueeze(-1).expand(batch_size, self.latent_dim).to(
             self.device)
 
         m1 = torch.where(choices, masks[0], masks[1])
         m2 = torch.where(choices, masks[1], masks[0])
 
-        z1 = z1 * m1
-        z2 = z2 * m2
+        z1 *= m1
+        z2 *= m2
 
         scene = z1 + z2
         return scene
@@ -130,8 +132,6 @@ class MultiDisDspritesVAE(pl.LightningModule):
         z3 = torch.sum(z3, dim=1)
 
         # multiply by object number placeholders
-        #
-
         scene1_latent = self.encode_scene(z1, z3)
         scene2_latent = self.encode_scene(z2, z3)
 
@@ -145,18 +145,30 @@ class MultiDisDspritesVAE(pl.LightningModule):
         self.log("l1", l1, prog_bar=True)
         self.log("l2", l2, prog_bar=True)
         self.log("kld", kld, prog_bar=True)
-        if self.step_n % 49 == 0:
+        if self.step_n % 499 == 0:
+            # self.logger.experiment.add_image('Scene 1', scene1[0], dataformats='CHW', global_step=self.step_n)
+            # self.logger.experiment.add_image('Scene 2', scene2[0], dataformats='CHW', global_step=self.step_n)
+            # self.logger.experiment.add_image('Recon 1', r1[0], dataformats='CHW',
+            #                                  global_step=self.step_n)
+            # self.logger.experiment.add_image('Recon 2', r2[0], dataformats='CHW',
+            #                                  global_step=self.step_n)
+            # self.logger.experiment.add_image('Fist obj', fist_obj[0], dataformats='CHW',
+            #                                  global_step=self.step_n)
+            # self.logger.experiment.add_image('Pair obj', pair_obj[0], dataformats='CHW',
+            #                                  global_step=self.step_n)
+            # self.logger.experiment.add_image('Second obj', second_obj[0], dataformats='CHW',
+            #                                  global_step=self.step_n)
             self.logger.experiment.log({
-                "reconstruct/examples": [
-                    wandb.Image(scene1[0], caption='Scene 1'),
-                    wandb.Image(scene2[0], caption='Scene 2'),
-                    wandb.Image(r1[0], caption='Recon 1'),
-                    wandb.Image(r2[0], caption='Recon 2'),
-                    wandb.Image(fist_obj[0], caption='Object 1'),
-                    wandb.Image(pair_obj[0], caption='Pair to O1'),
-                    wandb.Image(second_obj[0], caption='Object 2')
-                ]
-            })
+                    "reconstruct/examples": [
+                        wandb.Image(scene1[0], caption='Scene 1'),
+                        wandb.Image(scene2[0], caption='Scene 2'),
+                        wandb.Image(r1[0], caption='Recon 1'),
+                        wandb.Image(r2[0], caption='Recon 2'),
+                        wandb.Image(fist_obj[0], caption='Object 1'),
+                        wandb.Image(pair_obj[0], caption='Pair to O1'),
+                        wandb.Image(second_obj[0], caption='Object 2')
+                    ]
+                })
         self.step_n += 1
 
         return total
@@ -165,13 +177,15 @@ class MultiDisDspritesVAE(pl.LightningModule):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         return optimizer
 
-    @staticmethod
-    def loss_f(r1, r2, scene1, scene2, mu, log_var):
+    def loss_f(self, r1, r2, scene1, scene2, mu, log_var):
         loss = torch.nn.BCELoss(reduction='sum')
         l1 = loss(r1, scene1)
         l2 = loss(r2, scene2)
 
         kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
 
-        total_loss = l1 + l2 + kld
+        if self.step_n % 2 == 0:
+            total_loss = l1 + l2 + kld
+        else:
+            total_loss = l2 + l1 + kld
         return total_loss, l1, l2, kld
