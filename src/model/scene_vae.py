@@ -1,12 +1,10 @@
 from argparse import ArgumentParser
-from typing import Tuple, List
+from typing import Tuple
 
 import pytorch_lightning as pl
 import torch.optim
+
 import wandb
-from matplotlib import pyplot as plt
-from pytorch_lightning.utilities.types import STEP_OUTPUT, EPOCH_OUTPUT
-from torch import nn
 
 torch.set_printoptions(sci_mode=False)
 

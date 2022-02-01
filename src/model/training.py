@@ -18,7 +18,7 @@ parser = ArgumentParser()
 
 # add PROGRAM level args
 program_parser = parser.add_argument_group('program')
-program_parser.add_argument("--dataset_size", type=int, default=10 **  6)
+program_parser.add_argument("--dataset_size", type=int, default=10 ** 6)
 program_parser.add_argument("--batch_size", type=int, default=200)
 
 # add model specific args
