@@ -1,20 +1,19 @@
-import random
-from typing import Tuple
-
-import torch
-import numpy as np
-import matplotlib.pyplot as plt
-from numpy import ndarray
-from torch.utils.data import IterableDataset, DataLoader, Dataset
 import itertools
 import operator
+import random
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from numpy import ndarray
+from torch.utils.data import IterableDataset, DataLoader
 
 
 class MultiDisDsprites(IterableDataset):
     """Store dsprites images"""
 
     def __init__(self,
-                 path='/home/yessense/PycharmProjects/dsprites-disentanglement/src/dataset/data/dsprite_train.npz',
+                 path='../dataset/data/dsprite_train.npz',
                  size: int = 10 ** 5):
         dataset_zip = np.load(path)
         # data

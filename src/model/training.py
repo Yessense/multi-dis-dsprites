@@ -1,7 +1,5 @@
-import torchvision
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from torch.utils.data import DataLoader
-from torchvision.transforms import ToTensor
 
 from pytorch_lightning.loggers import WandbLogger
 
@@ -20,8 +18,6 @@ parser = ArgumentParser()
 
 # add PROGRAM level args
 program_parser = parser.add_argument_group('program')
-program_parser.add_argument("--mnist_download_dir", type=str,
-                            default='/home/yessense/PycharmProjects/mnist_scene/mnist_download')
 program_parser.add_argument("--dataset_size", type=int, default=10 **  6)
 program_parser.add_argument("--batch_size", type=int, default=200)
 

@@ -18,7 +18,7 @@ from vsa import *
 class MultiDisDspritesVAE(pl.LightningModule):
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser):
-        parser = parent_parser.add_argument_group("MnistSceneEncoder")
+        parser = parent_parser.add_argument_group("MultiDisDspritesVAE")
         parser.add_argument("--lr", type=float, default=0.001)
         parser.add_argument("--image_size", type=Tuple[int, int, int], default=(1, 64, 64))  # type: ignore
         parser.add_argument("--latent_dim", type=int, default=1024)
