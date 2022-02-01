@@ -146,18 +146,6 @@ class MultiDisDspritesVAE(pl.LightningModule):
         self.log("l2", l2, prog_bar=True)
         self.log("kld", kld, prog_bar=True)
         if self.step_n % 499 == 0:
-            # self.logger.experiment.add_image('Scene 1', scene1[0], dataformats='CHW', global_step=self.step_n)
-            # self.logger.experiment.add_image('Scene 2', scene2[0], dataformats='CHW', global_step=self.step_n)
-            # self.logger.experiment.add_image('Recon 1', r1[0], dataformats='CHW',
-            #                                  global_step=self.step_n)
-            # self.logger.experiment.add_image('Recon 2', r2[0], dataformats='CHW',
-            #                                  global_step=self.step_n)
-            # self.logger.experiment.add_image('Fist obj', fist_obj[0], dataformats='CHW',
-            #                                  global_step=self.step_n)
-            # self.logger.experiment.add_image('Pair obj', pair_obj[0], dataformats='CHW',
-            #                                  global_step=self.step_n)
-            # self.logger.experiment.add_image('Second obj', second_obj[0], dataformats='CHW',
-            #                                  global_step=self.step_n)
             self.logger.experiment.log({
                     "reconstruct/examples": [
                         wandb.Image(scene1[0], caption='Scene 1'),
@@ -167,8 +155,7 @@ class MultiDisDspritesVAE(pl.LightningModule):
                         wandb.Image(fist_obj[0], caption='Object 1'),
                         wandb.Image(pair_obj[0], caption='Pair to O1'),
                         wandb.Image(second_obj[0], caption='Object 2')
-                    ]
-                })
+                    ] })
         self.step_n += 1
 
         return total

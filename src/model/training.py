@@ -23,7 +23,7 @@ program_parser = parser.add_argument_group('program')
 program_parser.add_argument("--mnist_download_dir", type=str,
                             default='/home/yessense/PycharmProjects/mnist_scene/mnist_download')
 program_parser.add_argument("--dataset_size", type=int, default=10 **  6)
-program_parser.add_argument("--batch_size", type=int, default=256)
+program_parser.add_argument("--batch_size", type=int, default=200)
 
 # add model specific args
 parser = MultiDisDspritesVAE.add_model_specific_args(parent_parser=parser)
@@ -61,7 +61,11 @@ early_stop_callback = EarlyStopping(monitor=monitor, patience=patience)
 
 # checkpoint
 save_top_k = 2
-checkpoint_callback = ModelCheckpoint(monitor=monitor, save_top_k=save_top_k)
+save_weights_only = True
+
+checkpoint_callback = ModelCheckpoint(monitor=monitor,
+                                      save_weights_only=save_weights_only,
+                                      save_top_k=save_top_k)
 
 callbacks = [
     checkpoint_callback,
@@ -74,7 +78,7 @@ callbacks = [
 
 # trainer parameters
 profiler = 'simple'  # 'simple'/'advanced'/None
-max_epochs = 5
+max_epochs = 100
 gpus = 1
 
 # trainer
