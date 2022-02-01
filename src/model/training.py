@@ -1,5 +1,8 @@
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from torch.utils.data import DataLoader
+import sys
+
+sys.path.append("..")
 
 from pytorch_lightning.loggers import WandbLogger
 
