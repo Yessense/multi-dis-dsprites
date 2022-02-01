@@ -3,8 +3,8 @@ from torch.utils.data import DataLoader
 
 from pytorch_lightning.loggers import WandbLogger
 
-from src.dataset.dataset import MultiDisDsprites
-from src.model.scene_vae import MultiDisDspritesVAE
+from src.dataset import dataset
+import scene_vae
 import pytorch_lightning as pl
 from argparse import ArgumentParser
 
@@ -22,7 +22,7 @@ program_parser.add_argument("--dataset_size", type=int, default=10 ** 6)
 program_parser.add_argument("--batch_size", type=int, default=200)
 
 # add model specific args
-parser = MultiDisDspritesVAE.add_model_specific_args(parent_parser=parser)
+parser = scene_vae.MultiDisDspritesVAE.add_model_specific_args(parent_parser=parser)
 
 # add all the available trainer options to argparse#
 parser = pl.Trainer.add_argparse_args(parser)
@@ -34,7 +34,7 @@ args = parser.parse_args()
 # Load dataset
 # ------------------------------------------------------------
 
-iterable_dataset = MultiDisDsprites(size=args.dataset_size)
+iterable_dataset = dataset.MultiDisDsprites(size=args.dataset_size)
 loader = DataLoader(iterable_dataset, batch_size=args.batch_size, num_workers=1)
 
 # ------------------------------------------------------------
@@ -43,7 +43,7 @@ loader = DataLoader(iterable_dataset, batch_size=args.batch_size, num_workers=1)
 
 # model
 dict_args = vars(args)
-autoencoder = MultiDisDspritesVAE(**dict_args)
+autoencoder = scene_vae.MultiDisDspritesVAE(**dict_args)
 
 # ------------------------------------------------------------
 # Callbacks
