@@ -13,7 +13,7 @@ class MultiDisDsprites(IterableDataset):
     """Store dsprites images"""
 
     def __init__(self,
-                 path='../dataset/data/dsprite_train.npz',
+                 path='../src/dataset/data/dsprite_train.npz',
                  size: int = 10 ** 5):
         dataset_zip = np.load(path)
         # data
@@ -53,7 +53,11 @@ class MultiDisDsprites(IterableDataset):
         exchange_labels = np.zeros_like(label, dtype=bool)
         exchange_labels[feature_type] = True
 
-        while (other_feature := random.choice(self.features_range[feature_type])) == label[feature_type]: pass
+        other_feature = random.choice(self.features_range[feature_type])
+        while other_feature == label[feature_type]:
+            other_feature = random.choice(self.features_range[feature_type])
+            continue
+
         other_label = label[:]
         other_label[feature_type] = other_feature
 
@@ -120,7 +124,6 @@ if __name__ == '__main__':
     for i, batch in enumerate(loader):
         scenes1, scenes2, fist_objs, pair_objs, second_objs, exchange_labels = batch
         if i % 1000 == 0:
-
 
             fig, ax = plt.subplots(batch_size, 5, figsize=(5, 5))
             for i in range(batch_size):
