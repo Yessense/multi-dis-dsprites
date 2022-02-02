@@ -137,12 +137,16 @@ class MultiDisDspritesVAE(pl.LightningModule):
         r2 = self.decoder(scene2_latent)
 
         total, l1, l2, kld = self.loss_f(r1, r2, scene1, scene2, mu, log_var)
+        iou1 = self.iou_pytorch(r1, scene1)
+        iou2 = self.iou_pytorch(r2, scene2)
 
         # log training process
         self.log("total", total, prog_bar=True)
         self.log("l1", l1, prog_bar=True)
         self.log("l2", l2, prog_bar=True)
         self.log("kld", kld, prog_bar=True)
+        self.log("iou1", iou1, prog_bar=True)
+        self.log("iou2", iou2, prog_bar=True)
         if self.step_n % 499 == 0:
             self.logger.experiment.log({
                     "reconstruct/examples": [
@@ -162,8 +166,22 @@ class MultiDisDspritesVAE(pl.LightningModule):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         return optimizer
 
+    def iou_pytorch(self, outputs: torch.Tensor, labels: torch.Tensor):
+        # You can comment out this line if you are passing tensors of equal shape
+        # But if you are passing output from UNet or something it will most probably
+        # be with the BATCH x 1 x H x W shape
+        SMOOTH = 1e-8
+        intersection = (outputs & labels).float().sum((1, 2))  # Will be zero if Truth=0 or Prediction=0
+        union = (outputs | labels).float().sum((1, 2))  # Will be zzero if both are 0
+
+        iou = (intersection + SMOOTH) / (union + SMOOTH)  # We smooth our devision to avoid 0/0
+
+        thresholded = torch.clamp(20 * (iou - 0.5), 0, 10).ceil() / 10  # This is equal to comparing with thresolds
+
+        return thresholded  #
+
     def loss_f(self, r1, r2, scene1, scene2, mu, log_var):
-        loss = torch.nn.BCELoss(reduction='sum')
+        loss = torch.nn.MSELoss(reduction='sum')
         l1 = loss(r1, scene1)
         l2 = loss(r2, scene2)
 
