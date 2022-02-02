@@ -187,7 +187,7 @@ class MultiDisDspritesVAE(pl.LightningModule):
         return thresholded.mean()
 
     def loss_f(self, r1, r2, scene1, scene2, mu, log_var):
-        loss = torch.nn.MSELoss(reduction='sum')
+        loss = torch.nn.BCELoss(reduction='sum')
         l1 = loss(r1, scene1)
         l2 = loss(r2, scene2)
 
