@@ -78,7 +78,7 @@ callbacks = [
 # trainer parameters
 profiler = 'simple'  # 'simple'/'advanced'/None
 max_epochs = 100
-gpus = 1
+gpus = [0]
 
 # trainer
 trainer = pl.Trainer(gpus=gpus,

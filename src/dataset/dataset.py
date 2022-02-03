@@ -2,7 +2,7 @@ import itertools
 import operator
 import random
 
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from numpy import ndarray
@@ -114,26 +114,43 @@ class MultiDisDsprites(IterableDataset):
         return scene1, scene2, first_obj, pair_obj, second_obj, exchange_labels
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
     # dataset
-    # mdd = MultiDisDsprites()
-    #
-    # batch_size = 5
-    # loader = DataLoader(mdd, batch_size=batch_size)
-    #
-    # for i, batch in enumerate(loader):
-    #     scenes1, scenes2, fist_objs, pair_objs, second_objs, exchange_labels = batch
-    #     if i % 1000 == 0:
-    #
-    #         fig, ax = plt.subplots(batch_size, 5, figsize=(5, 5))
-    #         for i in range(batch_size):
-    #             for j, column in enumerate(batch[:-1]):
-    #                 ax[i, j].imshow(column[i].detach().cpu().numpy().squeeze(0), cmap='gray')
-    #                 ax[i, j].set_axis_off()
-    #
-    #         plt.show()
-    #
-    #     assert torch.all(scenes1 == fist_objs + second_objs)
-    #     assert torch.all(scenes2 == pair_objs + second_objs)
-    #
-    # print("Done")
+    mdd = MultiDisDsprites(path='/home/yessense/PycharmProjects/multi-dis-dsprites/src/dataset/data/dsprite_train.npz')
+
+    batch_size = 5
+    loader = DataLoader(mdd, batch_size=batch_size)
+
+    for i, batch in enumerate(loader):
+        scenes1, scenes2, fist_objs, pair_objs, second_objs, exchange_labels = batch
+        if i % 1000 == 0:
+
+            fig, ax = plt.subplots(batch_size, 5, figsize=(5, 5))
+            for i in range(batch_size):
+                for j, column in enumerate(batch[:-1]):
+                    ax[i, j].imshow(column[i].detach().cpu().numpy().squeeze(0), cmap='gray')
+                    ax[i, j].set_axis_off()
+
+            plt.show()
+
+        assert torch.all(scenes1 == fist_objs + second_objs)
+        assert torch.all(scenes2 == pair_objs + second_objs)
+        break
+
+    for i, batch in enumerate(loader):
+        scenes1, scenes2, fist_objs, pair_objs, second_objs, exchange_labels = batch
+        if i % 1000 == 0:
+
+            fig, ax = plt.subplots(batch_size, 5, figsize=(5, 5))
+            for i in range(batch_size):
+                for j, column in enumerate(batch[:-1]):
+                    ax[i, j].imshow(column[i].detach().cpu().numpy().squeeze(0), cmap='gray')
+                    ax[i, j].set_axis_off()
+
+            plt.show()
+
+        assert torch.all(scenes1 == fist_objs + second_objs)
+        assert torch.all(scenes2 == pair_objs + second_objs)
+        break
+
+    print("Done")

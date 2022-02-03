@@ -137,8 +137,8 @@ class MultiDisDspritesVAE(pl.LightningModule):
         r2 = self.decoder(scene2_latent)
 
         total, l1, l2, kld = self.loss_f(r1, r2, scene1, scene2, mu, log_var)
-        iou1 = self.iou_pytorch(r1, scene1)
-        iou2 = self.iou_pytorch(r2, scene2)
+        iou1 = 1 - self.iou_pytorch(r1, scene1)
+        iou2 = 1 - self.iou_pytorch(r2, scene2)
         iou = (iou1 + iou2) / 2
 
         # log training process
