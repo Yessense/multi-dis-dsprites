@@ -97,11 +97,27 @@
         \label{fig:paired_scene_dsprites}
     \end{figure}
 
+
     \section{Models}
 
-    The main idea of the model is that it can reconstruct from the sum of features the object in the image
+    The main idea of the model is that it can reconstruct from the sum
+    of features the object in the image \autoref{fig:sum_features_to_scene}.
+    There may be several objects with different features on the stage \autoref{fig:multiple_objects_on_scene}
 
-
+    \begin{figure}[ht]
+        \begin{minipage}[t]{0.48\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{img/model/sum_features_to_scene}
+            \caption{The summation of image features to obtain a latent representation of the object on the scene.}
+            \label{fig:sum_features_to_scene}
+        \end{minipage}\hfill
+        \begin{minipage}[t]{0.48\textwidth}
+            \centering
+            \includegraphics[width=0.5\textwidth]{img/model/multiple_objects_on_scene}
+            \caption{The summation of the latent representations of several objects on the scene.}
+            \label{fig:multiple_objects_on_scene}
+        \end{minipage}
+    \end{figure}
 
 
 \end{document}
