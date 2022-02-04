@@ -55,7 +55,8 @@
         \end{tabular}
     \end{table}
 
-    \subsection{Paired dSprites}
+    \subsection{Paired-dSprites dataset}
+
     The purpose of creating this dataset is to make it possible to easily
     obtain paired images that differ in a single feature. This is possible
     due to the fact that in the original dataset the images are arranged in
@@ -70,6 +71,7 @@
     \end{figure}
 
     \subsection{Scene-dsprites dataset}
+
     This dataset was created to test the model's ability to reconstruct
     a scene from the sum of object vectors.
     Dataset consists of 2 to 5 non-overlapping figures from dSprites dataset.
@@ -85,6 +87,7 @@
     \end{figure}
 
     \subsection{Paired-Scene-dSprites dataset}
+
     This dataset combines the capabilities of the first and second dataset.
     There are two objects in the scene image.
     One of these objects can change one feature. \autoref{fig:paired_scene_dsprites}
@@ -100,24 +103,40 @@
 
     \section{Models}
 
-    The main idea of the model is that it can reconstruct from the sum
-    of features the object in the image \autoref{fig:sum_features_to_scene}.
-    There may be several objects with different features on the stage \autoref{fig:multiple_objects_on_scene}
+    The stages of the work involve successive complications of the model.
+    he first stage is that the model will be able to reconstruct the
+    original scene from the sum of features (\autoref{fig:sum_features_to_scene}).
+    The second stage - the model will be able to reconstruct the scene
+    from the sum of objects (\autoref{fig:sum_objects_to_scene}). The third stage - combination of the first
+    two approaches - the model should reconstruct the scene
+    from the sum of objects, which are represented by the sum of features (\autoref{fig:multiple_objects_on_scene}).
 
-    \begin{figure}[ht]
-        \begin{minipage}[t]{0.48\textwidth}
+    \begin{figure}[htb]
+        \begin{minipage}[b]{0.48\linewidth}
             \centering
-            \includegraphics[width=\textwidth]{img/model/sum_features_to_scene}
+            \includegraphics[width=\linewidth]{img/model/sum_features_to_scene}
             \caption{The summation of image features to obtain a latent representation of the object on the scene.}
             \label{fig:sum_features_to_scene}
-        \end{minipage}\hfill
-        \begin{minipage}[t]{0.48\textwidth}
+
+            \vspace*{\baselineskip} %% Space between small pictures
+
             \centering
-            \includegraphics[width=0.5\textwidth]{img/model/multiple_objects_on_scene}
+            \includegraphics[width=\linewidth]{img/model/sum_objects_to_scene}
+            \caption{The summation of image features to obtain a latent representation of the object on the scene.}
+            \label{fig:sum_objects_to_scene}
+        \end{minipage}\hfill
+        \begin{minipage}[b]{0.48\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{img/model/multiple_objects_on_scene}
             \caption{The summation of the latent representations of several objects on the scene.}
             \label{fig:multiple_objects_on_scene}
         \end{minipage}
     \end{figure}
 
+    \subsection{Paired-dSprites model}
+
+    \subsection{Scene-dSprites model}
+
+    \subsection{Paired-Scene-dSprites model}
 
 \end{document}
