@@ -111,29 +111,51 @@
     two approaches - the model should reconstruct the scene
     from the sum of objects, which are represented by the sum of features (\autoref{fig:multiple_objects_on_scene}).
 
-    \begin{figure}[htb]
-        \begin{minipage}[b]{0.48\linewidth}
+    A variation autoencoder is chosen as the basic model. The encoder and
+    decoder consist of 4 convolutional and 2 linear layers. The latent
+    representation of one figure in dsprites consists of five 1024.
+    dimensional vectors. One for each feature (\autoref{fig:basic_model}).
+
+
+    \begin{figure}[ht]{\linewidth}
+        \begin{minipage}[b]{0.48\textwidth}
             \centering
-            \includegraphics[width=\linewidth]{img/model/sum_features_to_scene}
+            \includegraphics[width=\textwidth]{img/model/sum_features_to_scene}
             \caption{The summation of image features to obtain a latent representation of the object on the scene.}
             \label{fig:sum_features_to_scene}
 
             \vspace*{\baselineskip} %% Space between small pictures
 
             \centering
-            \includegraphics[width=\linewidth]{img/model/sum_objects_to_scene}
+            \includegraphics[width=\textwidth]{img/model/sum_objects_to_scene}
             \caption{The summation of image features to obtain a latent representation of the object on the scene.}
             \label{fig:sum_objects_to_scene}
         \end{minipage}\hfill
-        \begin{minipage}[b]{0.48\linewidth}
+        \begin{minipage}[b]{0.48\textwidth}
             \centering
-            \includegraphics[width=\linewidth]{img/model/multiple_objects_on_scene}
+            \includegraphics[width=\textwidth]{img/model/multiple_objects_on_scene}
             \caption{The summation of the latent representations of several objects on the scene.}
             \label{fig:multiple_objects_on_scene}
         \end{minipage}
     \end{figure}
 
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.7\linewidth]{img/model/basic_model}
+        \caption{Diagram of the basic model}
+        \label{fig:basic_model}
+
+    \end{figure}
+
     \subsection{Paired-dSprites model}
+    This model reconstructs the scene from the sum of feature vectors.
+    The main difficulty is that the vectors representing the features carry
+    information only about this feature, as well as that the sum of these
+    vectors is reconstructed correctly. Ideally, you want to arrive at a
+    model that can assemble a single object with the desired properties
+    from different attributes of several objects.
+
+
 
     \subsection{Scene-dSprites model}
 
