@@ -155,7 +155,27 @@
     model that can assemble a single object with the desired properties
     from different attributes of several objects.
 
+    In order for the model to learn the matching of a particular latent vector
+    with an appropriate feature, the following training method is proposed.
+    Two images that differ by a single feature are fed to the input of the
+    model, and then both images are passed through the encoder, obtaining
+    a latent representation.
 
+    We want the four vectors of latent representation corresponding to the
+    four features to be independent of the changing feature. Therefore it
+    is assumed that one of the vectors encodes the difference between the
+    images. To teach this to the model, we swap these difference vectors
+    between the input features and try to reconstruct the original images
+    crosswise (\autoref{fig:paired_dsprites_model}).
+
+
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=\linewidth]{img/model/paired_dsprites_model}
+        \caption{Diagram of the basic model}
+        \label{fig:paired_dsprites_model}
+
+    \end{figure}
 
     \subsection{Scene-dSprites model}
 
