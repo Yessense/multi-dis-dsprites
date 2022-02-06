@@ -171,6 +171,12 @@ class MultiDisDspritesVAE(pl.LightningModule):
         self.log("iou1", iou1, prog_bar=True)
         self.log("iou2", iou2, prog_bar=True)
 
+        loss_1, loss_2, loss_3, loss_4 = self.content_loss(r1, scene1)
+        self.log("conv1", loss_1)
+        self.log("conv2", loss_2)
+        self.log("conv3", loss_3)
+        self.log("conv4", loss_4)
+
         if self.step_n % 499 == 0:
             self.logger.experiment.log({
                     "reconstruct/examples": [
