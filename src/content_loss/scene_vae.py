@@ -8,8 +8,8 @@ import wandb
 
 torch.set_printoptions(sci_mode=False)
 
-from src.model.decoder import Decoder
-from src.model.encoder import Encoder
+from src.content_loss.decoder import Decoder
+from src.content_loss.encoder import Encoder
 from vsa import *
 
 
@@ -19,7 +19,7 @@ class ContentLossVAE(pl.LightningModule):
         parser = parent_parser.add_argument_group("ConentLossVAE")
         parser.add_argument("--lr", type=float, default=0.001)
         parser.add_argument("--image_size", type=Tuple[int, int, int], default=(1, 64, 64))  # type: ignore
-        parser.add_argument("--latent_dim", type=int, default=5)
+        parser.add_argument("--latent_dim", type=int, default=1024)
 
         return parent_parser
 
@@ -65,4 +65,5 @@ class ContentLossVAE(pl.LightningModule):
 
     def loss_f(self, recon, scene1):
         loss = torch.nn.BCELoss(reduction='sum')
+        loss = loss(recon, scene1)
         return loss

@@ -6,6 +6,8 @@ import torch.optim
 
 import wandb
 
+from src.content_loss.scene_vae import ContentLossVAE
+
 torch.set_printoptions(sci_mode=False)
 
 from src.model.decoder import Decoder
@@ -23,6 +25,7 @@ class MultiDisDspritesVAE(pl.LightningModule):
         parser.add_argument("--n_features", type=int, default=5)
         parser.add_argument("--hd_objs", type=bool, default=True)
         parser.add_argument("--hd_features", type=bool, default=True)
+        parser.add_argument("--content_loss_path", type=str, default='/home/yessense/PycharmProjects/multi-dis-dsprites/src/content_loss/content_loss_model.ckpt')
 
         return parent_parser
 
@@ -35,12 +38,17 @@ class MultiDisDspritesVAE(pl.LightningModule):
                  hd_features: bool = False,
                  feature_names: Optional[List] = None,
                  obj_names: Optional[List] = None,
+                 content_loss_path = None,
                  **kwargs):
         super().__init__()
+
         if feature_names is None:
             feature_names = ['shape', 'size', 'rotation', 'posx', 'posy']
         if obj_names is None:
             obj_names = ['obj1', 'obj2']
+        if content_loss_path is not None:
+            self.cl_model = self.load_cl_model(content_loss_path)
+
         self.step_n = 0
         self.encoder = Encoder(latent_dim=latent_dim, image_size=image_size, n_features=n_features)
         self.decoder = Decoder(latent_dim=latent_dim, image_size=image_size, n_features=n_features)
@@ -103,6 +111,19 @@ class MultiDisDspritesVAE(pl.LightningModule):
 
         scene = z1 + z2
         return scene
+
+    def content_loss(self, scene, reconstructed):
+        _, conv1_s, conv2_s, conv3_s, conv4_s = self.cl_model.encoder(scene)
+        _, conv1_r, conv2_r, conv3_r, conv4_r = self.cl_model.encoder(reconstructed)
+        loss = torch.nn.MSELoss()
+        loss_1 = loss(conv1_r, conv1_s)
+        loss_2 = loss(conv2_r, conv2_s)
+        loss_3 = loss(conv3_r, conv3_s)
+        loss_4 = loss(conv4_r, conv4_s)
+
+        return loss_1, loss_2, loss_3, loss_4
+
+
 
     def training_step(self, batch):
         scene1, scene2, fist_obj, pair_obj, second_obj, exchange_label = batch
@@ -185,6 +206,18 @@ class MultiDisDspritesVAE(pl.LightningModule):
         thresholded = torch.clamp(20 * (iou - 0.5), 0, 10).ceil() / 10  # This is equal to comparing with thresolds
 
         return thresholded.mean()
+
+    def load_cl_model(self, checkpoint_path: str) -> ContentLossVAE:
+        """ Load content loss model"""
+
+        ckpt = torch.load(checkpoint_path)
+
+        hyperparams = ckpt['hyper_parameters']
+        state_dict = ckpt['state_dict']
+
+        model = ContentLossVAE(**hyperparams)
+        model.load_state_dict(state_dict)
+        return model
 
     def loss_f(self, r1, r2, scene1, scene2, mu, log_var):
         loss = torch.nn.BCELoss(reduction='sum')

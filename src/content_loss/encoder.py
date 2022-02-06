@@ -30,7 +30,7 @@ class Encoder(nn.Module):
         # Fully connected layers
         self.lin1 = nn.Linear(np.product(self.reshape), self.hidden_dim)
         # Fully connected layers for mean and variance
-        self.latent_layer = nn.Linear(self.hidden_dim, self.hidden_dim)
+        self.latent_layer = nn.Linear(self.hidden_dim, self.latent_dim)
 
         self.activation = torch.nn.GELU()
 
@@ -47,10 +47,10 @@ class Encoder(nn.Module):
         conv4 = self.activation(self.conv4(conv3))
         # print(f'Conv4 shape: {x.shape}')
         # x = self.activation(self.conv5(x))
-        # print(f'Conv5 shape: {x.shape}')
+        # print(f'Conv5 shape: {conv4.shape}')
 
         # Fully connected layers with ReLu activations
-        x = x.view((batch_size, -1))
+        x = conv4.view((batch_size, -1))
         # print(f'View shape: {x.shape}')
         x = self.activation(self.lin1(x))
         # print(f'Lin1 shape: {x.shape}')
