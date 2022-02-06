@@ -179,6 +179,20 @@
 
     \subsection{Scene-dSprites model}
 
+    In the case of scene reconstruction, we take several images from the dataset
+    dsprites, pass each image through the encoder and summarize the resulting
+    latent representations of objects
+
     \subsection{Paired-Scene-dSprites model}
+    When combining approaches, we reconstruct the scene from a sum of objects,
+    each of which consists of a sum of features. When we successfully partition
+    the features into vectors, the problem arises of attributing a particular
+    feature to a particular object.
+
+    To solve this problem, we start an item memory, where each property vector
+    and each object vector corresponds to its own vector.
+    Then during summation we multiply the vectors from the memory by the corresponding
+    vectors of the latent representation.
+
 
 \end{document}
