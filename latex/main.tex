@@ -65,7 +65,7 @@
     \autoref{fig:paired_dsprites}
     \begin{figure}[ht]
         \centering
-        \includegraphics[width=0.3\textwidth]{img/datasets/paired_dsprites}
+        \includegraphics[width=0.7\textwidth]{img/datasets/paired_dsprites}
         \caption{Visualizing Paired dSprites dataset elements}
         \label{fig:paired_dsprites}
     \end{figure}
@@ -104,44 +104,37 @@
     \section{Models}
 
     The stages of the work involve successive complications of the model.
-    he first stage is that the model will be able to reconstruct the
+    The first stage is that the model will be able to reconstruct the
     original scene from the sum of features (\autoref{fig:sum_features_to_scene}).
     The second stage - the model will be able to reconstruct the scene
     from the sum of objects (\autoref{fig:sum_objects_to_scene}). The third stage - combination of the first
     two approaches - the model should reconstruct the scene
-    from the sum of objects, which are represented by the sum of features (\autoref{fig:multiple_objects_on_scene}).
+    from the sum of objects, which are represented by the sum of features.
 
     A variation autoencoder is chosen as the basic model. The encoder and
     decoder consist of 4 convolutional and 2 linear layers. The latent
-    representation of one figure in dsprites consists of five 1024.
+    representation of one figure in dsprites consists of five 1024
     dimensional vectors. One for each feature (\autoref{fig:basic_model}).
 
 
     \begin{figure}[ht]{\linewidth}
         \begin{minipage}[b]{0.48\textwidth}
             \centering
-            \includegraphics[width=\textwidth]{img/model/sum_features_to_scene}
+            \includegraphics[width=0.7\textwidth]{img/model/sum_features_to_scene}
             \caption{The summation of image features to obtain a latent representation of the object on the scene.}
             \label{fig:sum_features_to_scene}
-
-            \vspace*{\baselineskip} %% Space between small pictures
-
-            \centering
-            \includegraphics[width=\textwidth]{img/model/sum_objects_to_scene}
-            \caption{The summation of image features to obtain a latent representation of the object on the scene.}
-            \label{fig:sum_objects_to_scene}
         \end{minipage}\hfill
         \begin{minipage}[b]{0.48\textwidth}
             \centering
-            \includegraphics[width=\textwidth]{img/model/multiple_objects_on_scene}
-            \caption{The summation of the latent representations of several objects on the scene.}
-            \label{fig:multiple_objects_on_scene}
+            \includegraphics[width=0.7\textwidth]{img/model/sum_objects_to_scene}
+            \caption{The summation of image features to obtain a latent representation of the object on the scene.}
+            \label{fig:sum_objects_to_scene}
         \end{minipage}
     \end{figure}
 
-    \begin{figure}
+    \begin{figure}[ht]
         \centering
-        \includegraphics[width=0.7\linewidth]{img/model/basic_model}
+        \includegraphics[width=0.6\linewidth]{img/model/basic_model}
         \caption{Diagram of the basic model}
         \label{fig:basic_model}
 
