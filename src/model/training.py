@@ -22,7 +22,7 @@ parser = ArgumentParser()
 # add PROGRAM level args
 program_parser = parser.add_argument_group('program')
 program_parser.add_argument("--dataset_size", type=int, default=10 ** 6)
-program_parser.add_argument("--batch_size", type=int, default=4)
+program_parser.add_argument("--batch_size", type=int, default=128)
 
 # add model specific args
 parser = scene_vae.MultiDisDspritesVAE.add_model_specific_args(parent_parser=parser)
