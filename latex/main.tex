@@ -187,5 +187,11 @@
     Then during summation we multiply the vectors from the memory by the corresponding
     vectors of the latent representation.
 
+    \subsection{Experiments}
+
+    bce 1 + bce 2 + cosine loss + kld  -> bad quality
+    bce 1 + bce 2 + cosine loss -> good quality
+    bce 1 + bce 2 + cosine loss + 0.01 * kld -> good quality
+
 
 \end{document}

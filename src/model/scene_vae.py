@@ -127,6 +127,7 @@ class MultiDisDspritesVAE(pl.LightningModule):
 
     def training_step(self, batch):
         scene1, scene2, fist_obj, pair_obj, second_obj, exchange_label = batch
+        batch_size = scene1.shape[0]
 
         mu1, log_var1, z1 = self.encode_features(fist_obj)
         mu2, log_var2, z2 = self.encode_features(pair_obj)
@@ -135,8 +136,21 @@ class MultiDisDspritesVAE(pl.LightningModule):
         mu = (mu1 + mu2 + mu3) / 3
         log_var = (log_var1 + log_var2 + log_var3) / 3
 
-        exchange_label = exchange_label.expand(z1.size())
+
+        # ----------------------------------------------------------------------
+        # Exchange feature by cosine similarity
+        # ----------------------------------------------------------------------
+
+        cos = torch.nn.CosineSimilarity(dim=2, eps=1e-6)
+        similarity = cos(z1, z2)
+        lowest = torch.argmin(torch.abs(similarity), keepdim=False, dim=1)
+
+        exchange_label = torch.zeros(batch_size, self.n_features).bool()
+        exchange_label[torch.arange(batch_size), lowest] = True
+        exchange_label = exchange_label.unsqueeze(-1).expand(z1.size())
+
         # [False, False, False, False, True]
+        # Состоит из векторов False и одного вектора True для самого отличающегося признака.
         # Состоит из вектора z2, с одной нужной координатой из z1
         # z1 Восстанавливает 1 изображение
         z1 = torch.where(exchange_label, z1, z2)
