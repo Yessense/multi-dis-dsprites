@@ -79,7 +79,7 @@ callbacks = [
 
 # trainer parameters
 profiler = 'simple'  # 'simple'/'advanced'/None
-max_epochs = 100
+# max_epochs = 100
 gpus = [0]
 
 # trainer
