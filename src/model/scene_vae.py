@@ -19,7 +19,7 @@ class MultiDisDspritesVAE(pl.LightningModule):
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser):
         parser = parent_parser.add_argument_group("MultiDisDspritesVAE")
-        parser.add_argument("--lr", type=float, default=0.001)
+        parser.add_argument("--lr", type=float, default=0.0005)
         parser.add_argument("--image_size", type=Tuple[int, int, int], default=(1, 64, 64))  # type: ignore
         parser.add_argument("--latent_dim", type=int, default=1024)
         parser.add_argument("--n_features", type=int, default=5)
@@ -269,5 +269,5 @@ class MultiDisDspritesVAE(pl.LightningModule):
             curr_cos_loss = cosine_embedding_loss(curr_feat1, curr_feat2, curr_target)
             cos_loss += curr_cos_loss
 
-        total_loss = l1 + l2 + kld * 0.01 + cos_loss
+        total_loss = l1 + l2 + kld * 0.0001 + cos_loss
         return total_loss, l1, l2, kld, cos_loss

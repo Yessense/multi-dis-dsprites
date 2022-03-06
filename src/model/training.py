@@ -22,7 +22,7 @@ parser = ArgumentParser()
 # add PROGRAM level args
 program_parser = parser.add_argument_group('program')
 program_parser.add_argument("--dataset_size", type=int, default=10 ** 6)
-program_parser.add_argument("--batch_size", type=int, default=512)
+program_parser.add_argument("--batch_size", type=int, default=1024)
 # program_parser.add_argument("--max_epochs", type=int, default=100)
 
 
