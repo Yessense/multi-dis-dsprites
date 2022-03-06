@@ -269,5 +269,5 @@ class MultiDisDspritesVAE(pl.LightningModule):
             curr_cos_loss = cosine_embedding_loss(curr_feat1, curr_feat2, curr_target)
             cos_loss += curr_cos_loss
 
-        total_loss = l1 + l2 + kld * 0.001 + cos_loss
+        total_loss = l1 + l2 + kld * 0.01 + cos_loss
         return total_loss, l1, l2, kld, cos_loss
