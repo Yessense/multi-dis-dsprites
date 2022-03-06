@@ -47,8 +47,8 @@ class MultiDisDspritesVAE(pl.LightningModule):
             feature_names = ['shape', 'size', 'rotation', 'posx', 'posy']
         if obj_names is None:
             obj_names = ['obj1', 'obj2']
-        if content_loss_path is not None:
-            self.cl_model = self.load_cl_model(content_loss_path)
+        # if content_loss_path is not None:
+        #     self.cl_model = self.load_cl_model(content_loss_path)
 
         self.step_n = 0
         self.encoder = Encoder(latent_dim=latent_dim, image_size=image_size, n_features=n_features)
@@ -191,17 +191,17 @@ class MultiDisDspritesVAE(pl.LightningModule):
         self.log("IOU reconstruct 2, img 2", iou2, prog_bar=False)
         self.log("Cosine loss", cos_loss, prog_bar=True)
 
-        loss_1, loss_2, loss_3, loss_4 = self.content_loss(r1, scene1)
-        loss_12, loss_22, loss_32, loss_42 = self.content_loss(r2, scene2)
-        self.log("Content loss recon 1 conv 1", loss_1)
-        self.log("Content loss recon 1 conv 2", loss_2)
-        self.log("Content loss recon 1 conv 3", loss_3)
-        self.log("Content loss recon 1 conv 4", loss_4)
-
-        self.log("Content loss recon 2 conv 1", loss_12)
-        self.log("Content loss recon 2 conv 2", loss_22)
-        self.log("Content loss recon 2 conv 3", loss_32)
-        self.log("Content loss recon 2 conv 4", loss_42)
+        # loss_1, loss_2, loss_3, loss_4 = self.content_loss(r1, scene1)
+        # loss_12, loss_22, loss_32, loss_42 = self.content_loss(r2, scene2)
+        # self.log("Content loss recon 1 conv 1", loss_1)
+        # self.log("Content loss recon 1 conv 2", loss_2)
+        # self.log("Content loss recon 1 conv 3", loss_3)
+        # self.log("Content loss recon 1 conv 4", loss_4)
+        #
+        # self.log("Content loss recon 2 conv 1", loss_12)
+        # self.log("Content loss recon 2 conv 2", loss_22)
+        # self.log("Content loss recon 2 conv 3", loss_32)
+        # self.log("Content loss recon 2 conv 4", loss_42)
 
         if self.step_n % 499 == 0:
             self.logger.experiment.log({

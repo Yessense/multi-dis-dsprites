@@ -22,7 +22,9 @@ parser = ArgumentParser()
 # add PROGRAM level args
 program_parser = parser.add_argument_group('program')
 program_parser.add_argument("--dataset_size", type=int, default=10 ** 6)
-program_parser.add_argument("--batch_size", type=int, default=128)
+program_parser.add_argument("--batch_size", type=int, default=512)
+program_parser.add_argument("--max_epochs", type=int, default=100)
+
 
 # add model specific args
 parser = scene_vae.MultiDisDspritesVAE.add_model_specific_args(parent_parser=parser)
@@ -59,7 +61,7 @@ patience = 5
 early_stop_callback = EarlyStopping(monitor=monitor, patience=patience)
 
 # checkpoint
-save_top_k = 1
+save_top_k = 2
 save_weights_only = True
 
 checkpoint_callback = ModelCheckpoint(monitor=monitor,
@@ -82,7 +84,7 @@ gpus = [0]
 
 # trainer
 trainer = pl.Trainer(gpus=gpus,
-                     max_epochs=max_epochs,
+                     max_epochs=args.max_epochs,
                      profiler=profiler,
                      limit_val_batches=0.0,
                      callbacks=callbacks,
