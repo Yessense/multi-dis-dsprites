@@ -23,7 +23,7 @@ parser = ArgumentParser()
 program_parser = parser.add_argument_group('program')
 program_parser.add_argument("--dataset_size", type=int, default=10 ** 6)
 program_parser.add_argument("--batch_size", type=int, default=512)
-program_parser.add_argument("--max_epochs", type=int, default=100)
+# program_parser.add_argument("--max_epochs", type=int, default=100)
 
 
 # add model specific args
@@ -79,12 +79,12 @@ callbacks = [
 
 # trainer parameters
 profiler = 'simple'  # 'simple'/'advanced'/None
-# max_epochs = 100
+max_epochs = 100
 gpus = [0]
 
 # trainer
 trainer = pl.Trainer(gpus=gpus,
-                     max_epochs=args.max_epochs,
+                     max_epochs=max_epochs,
                      profiler=profiler,
                      limit_val_batches=0.0,
                      callbacks=callbacks,
