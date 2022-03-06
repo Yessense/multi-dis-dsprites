@@ -13,7 +13,7 @@ class MultiDisDsprites(IterableDataset):
     """Store dsprites images"""
 
     def __init__(self,
-                 path='./src/dataset/data/dsprite_train.npz',
+                 path='/home/akorchemnyi/multi-dis-dsprites/src/dataset/data/dsprite_train.npz',
                  size: int = 10 ** 5):
         dataset_zip = np.load(path)
         # data

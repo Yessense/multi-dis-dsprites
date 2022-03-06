@@ -26,7 +26,7 @@ class MultiDisDspritesVAE(pl.LightningModule):
         parser.add_argument("--hd_objs", type=bool, default=True)
         parser.add_argument("--hd_features", type=bool, default=True)
         parser.add_argument("--content_loss_path", type=str,
-                            default='/home/yessense/PycharmProjects/multi-dis-dsprites/src/content_loss/content_loss_model.ckpt')
+                            default='/home/akorchemnyi/multi-dis-dsprites/src/content_loss/content_loss_model.ckpt')
 
         return parent_parser
 
