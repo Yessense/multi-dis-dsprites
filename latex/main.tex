@@ -5,6 +5,10 @@
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{wasysym}
+\usepackage{amsfonts}
+\usepackage{booktabs}
+%\usepackage{siunitx}
 \title{dSprites VSA}
 \author{ }
 \date{ }
@@ -16,11 +20,10 @@
 
     \section{Introduction}
 
-    The goal of this work is to extract the features of the image
-    and represent them as multidimensional vectors, which, when
-    summed up, will allow you to reconstruct the original image.
-    Having started with a single object in the scene, we will try
-    to move to a set of several objects.
+    The goal of this work is to get a hidden disentanglement representation
+    of the scene, such that we can, by performing certain operations on it,
+    get predictable changes in the scene. That is, we move from manipulating
+    the objects in the scene (pixels) to manipulating their hidden representations.
 
 
     \section{Datasets}
@@ -174,7 +177,7 @@
 
     In the case of scene reconstruction, we take several images from the dataset
     dsprites, pass each image through the encoder and summarize the resulting
-    latent representations of objects
+    latent representations of objects.
 
     \subsection{Paired-Scene-dSprites model}
     When combining approaches, we reconstruct the scene from a sum of objects,
@@ -184,14 +187,42 @@
 
     To solve this problem, we start an item memory, where each property vector
     and each object vector corresponds to its own vector.
+    item memory consists of 7 real vectors of the same dimensionality as the
+    latent vectors - 1024.
+    Vectors are fixed and do not change during training.
     Then during summation we multiply the vectors from the memory by the corresponding
     vectors of the latent representation.
 
-    \subsection{Experiments}
 
-    bce 1 + bce 2 + cosine loss + kld  -> bad quality
-    bce 1 + bce 2 + cosine loss -> good quality
-    bce 1 + bce 2 + cosine loss + 0.01 * kld -> good quality
+    \section{Results}
 
+
+    \section{Experiments}
+
+    \begin{tabular}{SSSSSSSS}
+        \toprule
+        {n} & {Model} & {Image loss} & {Reduction} & {KLD coef} & {Cosine loss} & Quality \\ \midrule
+        1   & PD      & MSE          & sum         & 1.0        & 0.0           & Bad     \\
+        2   & PD      & MSE          & sum         & 1.0        & 1.0           & Bad     \\
+        \midrule
+        3   & PD      & MSE          & mean        & 1.0        & 0.0           & Bad     \\
+        4   & PD      & MSE          & mean        & 0.1        & 0.0           & Bad     \\
+        5   & PD      & MSE          & mean        & 0.01       & 0.0           & Bad     \\
+        6   & PD      & MSE          & mean        & 0.001      & 0.0           & Bad     \\
+        \midrule
+        7   & PD      & MSE          & mean        & 1.0        & 1.0           & Bad     \\
+        8   & PD      & MSE          & mean        & 0.1        & 1.0           & Bad     \\
+        9   & PD      & MSE          & mean        & 0.01       & 1.0           & Bad     \\
+        10  & PD      & MSE          & mean        & 0.001      & 1.0           & Bad     \\
+        \midrule
+        11  & PD      & BCE          & sum         & 1.0        & 0.0           & Bad     \\
+        12  & PD      & BCE          & sum         & 1.0        & 1.0           & Bad     \\
+        13  & PD      & BCE          & sum         & 0.1        & 1.0           & Bad     \\
+        14  & PD      & BCE          & sum         & 0.0        & 1.0           & Good    \\
+        15  & PD      & BCE          & sum         & 0.01       & 1.0           & Good    \\
+        \midrule
+        16  & PSD     & BCE          & sum         & 0.01       & 1.0           & Good    \\
+        \bottomrule
+    \end{tabular}
 
 \end{document}

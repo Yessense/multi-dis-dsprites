@@ -59,7 +59,7 @@ patience = 5
 early_stop_callback = EarlyStopping(monitor=monitor, patience=patience)
 
 # checkpoint
-save_top_k = 2
+save_top_k = 1
 save_weights_only = True
 
 checkpoint_callback = ModelCheckpoint(monitor=monitor,

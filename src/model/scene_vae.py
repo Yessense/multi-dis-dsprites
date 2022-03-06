@@ -25,7 +25,8 @@ class MultiDisDspritesVAE(pl.LightningModule):
         parser.add_argument("--n_features", type=int, default=5)
         parser.add_argument("--hd_objs", type=bool, default=True)
         parser.add_argument("--hd_features", type=bool, default=True)
-        parser.add_argument("--content_loss_path", type=str, default='/home/yessense/PycharmProjects/multi-dis-dsprites/src/content_loss/content_loss_model.ckpt')
+        parser.add_argument("--content_loss_path", type=str,
+                            default='/home/yessense/PycharmProjects/multi-dis-dsprites/src/content_loss/content_loss_model.ckpt')
 
         return parent_parser
 
@@ -38,7 +39,7 @@ class MultiDisDspritesVAE(pl.LightningModule):
                  hd_features: bool = False,
                  feature_names: Optional[List] = None,
                  obj_names: Optional[List] = None,
-                 content_loss_path = None,
+                 content_loss_path=None,
                  **kwargs):
         super().__init__()
 
@@ -123,39 +124,43 @@ class MultiDisDspritesVAE(pl.LightningModule):
 
         return loss_1, loss_2, loss_3, loss_4
 
-
-
     def training_step(self, batch):
         scene1, scene2, fist_obj, pair_obj, second_obj, exchange_label = batch
         batch_size = scene1.shape[0]
 
-        mu1, log_var1, z1 = self.encode_features(fist_obj)
-        mu2, log_var2, z2 = self.encode_features(pair_obj)
+        mu1, log_var1, feat_1 = self.encode_features(fist_obj)
+        mu2, log_var2, feat_2 = self.encode_features(pair_obj)
         mu3, log_var3, z3 = self.encode_features(second_obj)
 
         mu = (mu1 + mu2 + mu3) / 3
         log_var = (log_var1 + log_var2 + log_var3) / 3
 
+        # exchange_label = exchange_label.expand(z1.size())
 
-        # ----------------------------------------------------------------------
-        # Exchange feature by cosine similarity
-        # ----------------------------------------------------------------------
-
+        # # ----------------------------------------------------------------------
+        # # Exchange feature by cosine similarity
+        # # ----------------------------------------------------------------------
+        #
         cos = torch.nn.CosineSimilarity(dim=2, eps=1e-6)
-        similarity = cos(z1, z2)
+        similarity = cos(feat_1, feat_2)
         lowest = torch.argmin(torch.abs(similarity), keepdim=False, dim=1)
 
-        exchange_label = torch.zeros(batch_size, self.n_features).bool()
-        exchange_label[torch.arange(batch_size), lowest] = True
-        exchange_label = exchange_label.unsqueeze(-1).expand(z1.size())
+        labels = torch.zeros(batch_size, self.n_features).bool().to(self.device)
+        labels[torch.arange(batch_size), lowest] = True
+
+        exchange_labels = labels.unsqueeze(-1).expand(feat_1.size())
+
+        # exchange_label = torch.zeros(batch_size, self.n_features).bool()
+        # exchange_label[torch.arange(batch_size), lowest] = True
+        # exchange_label = exchange_label.unsqueeze(-1).expand(z1.size())
 
         # [False, False, False, False, True]
         # Состоит из векторов False и одного вектора True для самого отличающегося признака.
         # Состоит из вектора z2, с одной нужной координатой из z1
         # z1 Восстанавливает 1 изображение
-        z1 = torch.where(exchange_label, z1, z2)
+        z1 = torch.where(exchange_label, feat_1, feat_2)
         # z2 Восстанавливает 2 изображение изображение
-        z2 = torch.where(exchange_label, z2, z1)
+        z2 = torch.where(exchange_label, feat_2, feat_1)
 
         # z1 -> first object -> (-1, 1024)
         z1 = torch.sum(z1, dim=1)
@@ -171,37 +176,44 @@ class MultiDisDspritesVAE(pl.LightningModule):
         r1 = self.decoder(scene1_latent)
         r2 = self.decoder(scene2_latent)
 
-        total, l1, l2, kld = self.loss_f(r1, r2, scene1, scene2, mu, log_var)
-        iou1 = 1 - self.iou_pytorch(r1, scene1)
-        iou2 = 1 - self.iou_pytorch(r2, scene2)
+        total, l1, l2, kld, cos_loss = self.loss_f(r1, r2, scene1, scene2, mu, log_var, feat_1, feat_2, labels)
+        iou1 = self.iou_pytorch(r1, scene1)
+        iou2 = self.iou_pytorch(r2, scene2)
         iou = (iou1 + iou2) / 2
 
         # log training process
-        self.log("total", total, prog_bar=True)
-        self.log("l1", l1, prog_bar=True)
-        self.log("l2", l2, prog_bar=True)
-        self.log("kld", kld, prog_bar=True)
-        self.log("iou", iou, prog_bar=True)
-        self.log("iou1", iou1, prog_bar=True)
-        self.log("iou2", iou2, prog_bar=True)
+        self.log("Sum of losses", total, prog_bar=True)
+        self.log("BCE reconstruct 1, img 1", l1, prog_bar=False)
+        self.log("BCE reconstruct 2, img 2", l2, prog_bar=False)
+        self.log("KL divergence", kld, prog_bar=True)
+        self.log("IOU mean ", iou, prog_bar=True)
+        self.log("IOU reconstruct 1, img 1", iou1, prog_bar=False)
+        self.log("IOU reconstruct 2, img 2", iou2, prog_bar=False)
+        self.log("Cosine loss", cos_loss, prog_bar=True)
 
         loss_1, loss_2, loss_3, loss_4 = self.content_loss(r1, scene1)
-        self.log("conv1", loss_1)
-        self.log("conv2", loss_2)
-        self.log("conv3", loss_3)
-        self.log("conv4", loss_4)
+        loss_12, loss_22, loss_32, loss_42 = self.content_loss(r2, scene2)
+        self.log("Content loss recon 1 conv 1", loss_1)
+        self.log("Content loss recon 1 conv 2", loss_2)
+        self.log("Content loss recon 1 conv 3", loss_3)
+        self.log("Content loss recon 1 conv 4", loss_4)
+
+        self.log("Content loss recon 2 conv 1", loss_12)
+        self.log("Content loss recon 2 conv 2", loss_22)
+        self.log("Content loss recon 2 conv 3", loss_32)
+        self.log("Content loss recon 2 conv 4", loss_42)
 
         if self.step_n % 499 == 0:
             self.logger.experiment.log({
-                    "reconstruct/examples": [
-                        wandb.Image(scene1[0], caption='Scene 1'),
-                        wandb.Image(scene2[0], caption='Scene 2'),
-                        wandb.Image(r1[0], caption='Recon 1'),
-                        wandb.Image(r2[0], caption='Recon 2'),
-                        wandb.Image(fist_obj[0], caption='Object 1'),
-                        wandb.Image(pair_obj[0], caption='Pair to O1'),
-                        wandb.Image(second_obj[0], caption='Object 2')
-                    ] })
+                "reconstruct/examples": [
+                    wandb.Image(scene1[0], caption='Scene 1'),
+                    wandb.Image(scene2[0], caption='Scene 2'),
+                    wandb.Image(r1[0], caption='Recon 1'),
+                    wandb.Image(r2[0], caption='Recon 2'),
+                    wandb.Image(fist_obj[0], caption='Image 1'),
+                    wandb.Image(pair_obj[0], caption='Pair to Image 1'),
+                    wandb.Image(second_obj[0], caption='Image 2')
+                ]})
         self.step_n += 1
 
         return total
@@ -239,15 +251,23 @@ class MultiDisDspritesVAE(pl.LightningModule):
         model.load_state_dict(state_dict)
         return model
 
-    def loss_f(self, r1, r2, scene1, scene2, mu, log_var):
+    def loss_f(self, r1, r2, scene1, scene2, mu, log_var, feat_1, feat_2, exchange_labels):
         loss = torch.nn.BCELoss(reduction='sum')
         l1 = loss(r1, scene1)
         l2 = loss(r2, scene2)
 
         kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
 
-        if self.step_n % 2 == 0:
-            total_loss = l1 + l2 + kld
-        else:
-            total_loss = l2 + l1 + kld
-        return total_loss, l1, l2, kld
+        # Cos Loss
+        cos_loss = torch.tensor([0.]).to(self.device)
+        cosine_embedding_loss = torch.nn.CosineEmbeddingLoss(reduction='sum')
+        target = torch.logical_not(exchange_labels).float() * 2. - 1.
+        for i in range(self.n_features):
+            curr_feat1 = feat_1[:, i]
+            curr_feat2 = feat_2[:, i]
+            curr_target = target[:, i]
+            curr_cos_loss = cosine_embedding_loss(curr_feat1, curr_feat2, curr_target)
+            cos_loss += curr_cos_loss
+
+        total_loss = l1 + l2 + kld * 0.001 + cos_loss
+        return total_loss, l1, l2, kld, cos_loss
