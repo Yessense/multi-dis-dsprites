@@ -27,6 +27,7 @@ class MultiDisDsprites(IterableDataset):
         self.features_count = [3, 6, 40, 32, 32]
         self.features_range = [list(range(i)) for i in self.features_count]
         self.multiplier = list(itertools.accumulate(self.features_count[-1:0:-1], operator.mul))[::-1] + [1]
+        print(self.multiplier)
 
     def get_element_pos(self, labels: np.ndarray) -> int:
         pos = 0
@@ -113,44 +114,106 @@ class MultiDisDsprites(IterableDataset):
 
         return scene1, scene2, first_obj, pair_obj, second_obj, exchange_labels
 
+    def inference_sample(self):
+        # empty scene where to add objects
+        scene = np.zeros((1, 64, 64), dtype=int)
+
+        # store separate objects (1, 64, 64)
+        objs = []
+
+        # Store label info
+        # Color: white
+        # Shape: square, ellipse, heart
+        # Scale: 6 values linearly spaced in [0.5, 1]
+        # Orientation: 40 values in [0, 2 pi]
+        # Position X: 32 values in [0, 1]
+        # Position Y: 32 values in [0, 1]
+
+        # contains info if it empty image for consistence
+        masks = []
+
+        # number of objects on scene
+        n_objs = 3
+        for i in range(n_objs):
+            obj = self.generate_object(scene, scene)
+            scene += obj.astype(int)
+            objs.append(obj)
+
+        # stack elements into torch tensors
+        scene = torch.from_numpy(scene).float()
+        image1, donor, image2 = objs
+        image1 = torch.from_numpy(image1).float()
+        donor = torch.from_numpy(donor).float()
+        image2 = torch.from_numpy(image2).float()
+
+        return scene, image1, donor, image2
+
 
 if __name__ == '__main__':
     # dataset
     mdd = MultiDisDsprites(path='/home/yessense/PycharmProjects/multi-dis-dsprites/src/dataset/data/dsprite_train.npz')
 
-    batch_size = 5
-    loader = DataLoader(mdd, batch_size=batch_size)
+    # visual check if pair changes only one feature
+    # sample_size = 5
+    # for j in range(5):
+    #     fig, ax = plt.subplots(sample_size, 2)
+    #     for i in range(sample_size):
+    #         img, pair, exchange_labels = mdd.get_pair()
+    #         ax[i, 0].imshow(img.squeeze(0), cmap='gray')
+    #         ax[i, 1].imshow(pair.squeeze(0), cmap='gray')
+    #
+    #     plt.show()
 
-    for i, batch in enumerate(loader):
-        scenes1, scenes2, fist_objs, pair_objs, second_objs, exchange_labels = batch
-        if i % 1000 == 0:
+    # visual check of inference
 
-            fig, ax = plt.subplots(batch_size, 5, figsize=(5, 5))
-            for i in range(batch_size):
-                for j, column in enumerate(batch[:-1]):
-                    ax[i, j].imshow(column[i].detach().cpu().numpy().squeeze(0), cmap='gray')
-                    ax[i, j].set_axis_off()
+    sample_size = 5
+    fig, ax = plt.subplots(sample_size, 4)
+    for i in range(sample_size):
+        scene, image1, donor, image2 = mdd.inference_sample()
+        ax[i, 0].imshow(scene.detach().cpu().numpy().squeeze(0), cmap='gray')
+        ax[i, 1].imshow(image1.detach().cpu().numpy().squeeze(0), cmap='gray')
+        ax[i, 2].imshow(donor.detach().cpu().numpy().squeeze(0), cmap='gray')
+        ax[i, 3].imshow(image2.detach().cpu().numpy().squeeze(0), cmap='gray')
 
-            plt.show()
+    for i in range(sample_size):
+        for j in range(4):
+            ax[i, j].set_axis_off()
 
-        assert torch.all(scenes1 == fist_objs + second_objs)
-        assert torch.all(scenes2 == pair_objs + second_objs)
-        break
+    plt.show()
 
-    for i, batch in enumerate(loader):
-        scenes1, scenes2, fist_objs, pair_objs, second_objs, exchange_labels = batch
-        if i % 1000 == 0:
-
-            fig, ax = plt.subplots(batch_size, 5, figsize=(5, 5))
-            for i in range(batch_size):
-                for j, column in enumerate(batch[:-1]):
-                    ax[i, j].imshow(column[i].detach().cpu().numpy().squeeze(0), cmap='gray')
-                    ax[i, j].set_axis_off()
-
-            plt.show()
-
-        assert torch.all(scenes1 == fist_objs + second_objs)
-        assert torch.all(scenes2 == pair_objs + second_objs)
-        break
-
+    # batch_size = 5
+    # loader = DataLoader(mdd, batch_size=batch_size)
+    #
+    # for i, batch in enumerate(loader):
+    #     scenes1, scenes2, fist_objs, pair_objs, second_objs, exchange_labels = batch
+    #     if i % 1000 == 0:
+    #
+    #         fig, ax = plt.subplots(batch_size, 5, figsize=(5, 5))
+    #         for i in range(batch_size):
+    #             for j, column in enumerate(batch[:-1]):
+    #                 ax[i, j].imshow(column[i].detach().cpu().numpy().squeeze(0), cmap='gray')
+    #                 ax[i, j].set_axis_off()
+    #
+    #         plt.show()
+    #
+    #     assert torch.all(scenes1 == fist_objs + second_objs)
+    #     assert torch.all(scenes2 == pair_objs + second_objs)
+    #     break
+    #
+    # for i, batch in enumerate(loader):
+    #     scenes1, scenes2, fist_objs, pair_objs, second_objs, exchange_labels = batch
+    #     if i % 1000 == 0:
+    #
+    #         fig, ax = plt.subplots(batch_size, 5, figsize=(5, 5))
+    #         for i in range(batch_size):
+    #             for j, column in enumerate(batch[:-1]):
+    #                 ax[i, j].imshow(column[i].detach().cpu().numpy().squeeze(0), cmap='gray')
+    #                 ax[i, j].set_axis_off()
+    #
+    #         plt.show()
+    #
+    #     assert torch.all(scenes1 == fist_objs + second_objs)
+    #     assert torch.all(scenes2 == pair_objs + second_objs)
+    #     break
+    #
     print("Done")

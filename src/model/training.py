@@ -54,7 +54,7 @@ autoencoder = scene_vae.MultiDisDspritesVAE(**dict_args)
 # Callbacks
 # ------------------------------------------------------------
 
-monitor = 'total'
+monitor = 'Sum of losses'
 
 # early stop
 patience = 5
