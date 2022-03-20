@@ -96,21 +96,40 @@ class MultiDisDspritesVAE(pl.LightningModule):
             z = z * mask
         return mu, log_var, z
 
+    def encode_features_latent(self, img):
+        mu, log_var = self.encoder(img)
+        z = self.reparameterize(mu, log_var)
+        z = z.view(-1, 5, self.latent_dim)
+
+        if self.hd_features:
+            mask = self.feature_placeholders.expand(z.size()).to(self.device)
+            z = z * mask
+
+        return z
+
     def encode_scene(self, z1, z2):
         batch_size = z1.shape[0]
         masks = [mask.repeat(batch_size, 1).to(self.device) for mask in self.obj_placeholders]
 
-        # choices -> (-1, 1024)
-        choices = torch.randint(2, (batch_size,)).bool().unsqueeze(-1).expand(batch_size, self.latent_dim).to(
-            self.device)
+        m1 = masks[0]
+        m2 = masks[1]
 
-        m1 = torch.where(choices, masks[0], masks[1])
-        m2 = torch.where(choices, masks[1], masks[0])
+        # # choices -> (-1, 1024)
+        # choices = torch.randint(2, (batch_size,)).bool().unsqueeze(-1).expand(batch_size, self.latent_dim).to(
+        #     self.device)
+        #
+        # m1 = torch.where(choices, masks[0], masks[1])
+        # m2 = torch.where(choices, masks[1], masks[0])
 
-        z1 *= m1
-        z2 *= m2
+        if self.step_n % 2:
+            z1 *= m1
+            z2 *= m2
+        else:
+            z1 *= m2
+            z2 *= m1
 
         scene = z1 + z2
+
         return scene
 
     def content_loss(self, scene, reconstructed):
