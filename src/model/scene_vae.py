@@ -145,14 +145,16 @@ class MultiDisDspritesVAE(pl.LightningModule):
 
     def training_step(self, batch):
         scene1, scene2, fist_obj, pair_obj, second_obj, exchange_label = batch
+        second_obj_copy = second_obj.detach().clone()
         batch_size = scene1.shape[0]
 
         mu1, log_var1, feat_1 = self.encode_features(fist_obj)
         mu2, log_var2, feat_2 = self.encode_features(pair_obj)
-        mu3, log_var3, z3 = self.encode_features(second_obj)
+        mu3, log_var3, scene_feat_1 = self.encode_features(second_obj)
+        mu4, log_var4, scene_feat_2 = self.encode_features(second_obj_copy)
 
-        mu = (mu1 + mu2 + mu3) / 3
-        log_var = (log_var1 + log_var2 + log_var3) / 3
+        mu = (mu1 + mu2 + mu3 + mu4) / 4
+        log_var = (log_var1 + log_var2 + log_var3 + log_var4) / 3
 
         # exchange_label = exchange_label.expand(z1.size())
 
@@ -186,11 +188,12 @@ class MultiDisDspritesVAE(pl.LightningModule):
         # z2 -> pair object -> (-1, 1024)
         z2 = torch.sum(z2, dim=1)
         # z3 -> second object -> (-1, 1024)
-        z3 = torch.sum(z3, dim=1)
+        scene_feat_1 = torch.sum(scene_feat_1, dim=1)
+        scene_feat_2 = torch.sum(scene_feat_2, dim=1)
 
         # multiply by object number placeholders
-        scene1_latent = self.encode_scene(z1, z3)
-        scene2_latent = self.encode_scene(z2, z3)
+        scene1_latent = self.encode_scene(z1, scene_feat_1)
+        scene2_latent = self.encode_scene(z2, scene_feat_2)
 
         r1 = self.decoder(scene1_latent)
         r2 = self.decoder(scene2_latent)
