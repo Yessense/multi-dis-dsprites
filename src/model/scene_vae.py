@@ -271,10 +271,10 @@ class MultiDisDspritesVAE(pl.LightningModule):
         model.load_state_dict(state_dict)
         return model
 
-    def loss_f(self, r1, r2, scene1, scene2, mu, log_var, feat_1, feat_2, exchange_labels):
+    def loss_f(self, r1,scene1, scene2, mu, log_var, feat_1, feat_2, exchange_labels):
         loss = torch.nn.BCELoss(reduction='sum')
         l1 = loss(r1, scene1)
-        l2 = loss(r2, scene2)
+        # l2 = loss(r2, scene2)
 
         kld = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
 
