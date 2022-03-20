@@ -289,4 +289,4 @@ class MultiDisDspritesVAE(pl.LightningModule):
             cos_loss += curr_cos_loss
 
         total_loss = l1 + l2 + kld * 0.0001 + cos_loss
-        return total_loss, l1, l2, kld, cos_loss + 1
+        return total_loss, l1, l2, kld, cos_loss
