@@ -100,10 +100,10 @@ class MultiDisDspritesVAE(pl.LightningModule):
         mu, log_var = self.encoder(img)
         z = self.reparameterize(mu, log_var)
         z = z.view(-1, 5, self.latent_dim)
+        # print(z.shape)
 
-        if self.hd_features:
-            mask = self.feature_placeholders.expand(z.size()).to(self.device)
-            z = z * mask
+        mask = self.feature_placeholders.expand(z.size()).to(self.device)
+        z = z * mask
 
         return z
 
@@ -113,6 +113,8 @@ class MultiDisDspritesVAE(pl.LightningModule):
 
         m1 = masks[0]
         m2 = masks[1]
+        # print(m1.shape)
+        # print(m2.shape)
 
         # # choices -> (-1, 1024)
         # choices = torch.randint(2, (batch_size,)).bool().unsqueeze(-1).expand(batch_size, self.latent_dim).to(
@@ -121,12 +123,15 @@ class MultiDisDspritesVAE(pl.LightningModule):
         # m1 = torch.where(choices, masks[0], masks[1])
         # m2 = torch.where(choices, masks[1], masks[0])
 
-        if self.step_n % 2:
-            z1 *= m1
-            z2 *= m2
-        else:
-            z1 *= m2
-            z2 *= m1
+        z1 *= m1
+        z2 *= m2
+
+        # if self.step_n % 2:
+        #     z1 *= m1
+        #     z2 *= m2
+        # else:
+        #     z1 *= m2
+        #     z2 *= m1
 
         scene = z1 + z2
 
