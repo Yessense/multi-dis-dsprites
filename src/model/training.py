@@ -11,7 +11,7 @@ import scene_vae
 import pytorch_lightning as pl
 from argparse import ArgumentParser
 
-wandb_logger = WandbLogger(project='multi-dis-dsprites-vae', log_model='all')
+wandb_logger = WandbLogger(project='multi-dis-dsprites-vae', log_model=True)
 
 # ------------------------------------------------------------
 # Parse args
@@ -22,9 +22,9 @@ parser = ArgumentParser()
 # add PROGRAM level args
 program_parser = parser.add_argument_group('program')
 program_parser.add_argument("--dataset_size", type=int, default=10 ** 6)
-program_parser.add_argument("--batch_size", type=int, default=1024)
-# program_parser.add_argument("--max_epochs", type=int, default=100)
-
+program_parser.add_argument("--batch_size", type=int, default=128)
+program_parser.add_argument("--dataset_path", type=str,
+                            default='/home/yessense/PycharmProjects/multi-dis-dsprites/src/dataset/data/dsprite_train.npz')
 
 # add model specific args
 parser = scene_vae.MultiDisDspritesVAE.add_model_specific_args(parent_parser=parser)
@@ -39,7 +39,7 @@ args = parser.parse_args()
 # Load dataset
 # ------------------------------------------------------------
 
-iterable_dataset = dataset.MultiDisDsprites(size=args.dataset_size)
+iterable_dataset = dataset.MultiDisDsprites(size=args.dataset_size, path=args.dataset_path)
 loader = DataLoader(iterable_dataset, batch_size=args.batch_size, num_workers=1)
 
 # ------------------------------------------------------------
