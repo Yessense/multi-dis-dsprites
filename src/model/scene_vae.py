@@ -1,6 +1,6 @@
 import random
 from argparse import ArgumentParser
-from typing import Tuple
+from typing import Tuple, Optional, List
 
 import pytorch_lightning as pl
 import torch.optim
@@ -8,28 +8,31 @@ import torch.optim
 import wandb
 
 from src.utils import iou_pytorch  # type: ignore
-
-torch.set_printoptions(sci_mode=False)
-
 from src.model.decoder import Decoder  # type: ignore
 from src.model.encoder import Encoder  # type: ignore
-from vsa import *  # type: ignore
+from vsa import ItemMemory  # type: ignore
+
+torch.set_printoptions(sci_mode=False)
 
 
 class MultiDisDspritesVAE(pl.LightningModule):
     @staticmethod
     def add_model_specific_args(parent_parser: ArgumentParser):
         parser = parent_parser.add_argument_group("MultiDisDspritesVAE")
-        parser.add_argument("--lr", type=float, default=0.0005)
-        parser.add_argument("--image_size", type=Tuple[int, int, int], default=(1, 64, 64))  # type: ignore
-        parser.add_argument("--latent_dim", type=int, default=1024)
-        parser.add_argument("--n_features", type=int, default=5)
-        parser.add_argument("--hd_objs", type=bool, default=True)
-        parser.add_argument("--hd_features", type=bool, default=True)
-        parser.add_argument("--content_loss_path", type=str,
-                            default='/home/akorchemnyi/multi-dis-dsprites/src/content_loss/content_loss_model.ckpt')
-        parser.add_argument("--kld_coef", type=float, default=0.001)
-
+        parser.add_argument("--lr", type=float, default=0.0005,
+                            help="model's learning rate")
+        parser.add_argument("--image_size", type=int, default=(1, 64, 64), nargs=3,
+                            help="size of input image")
+        parser.add_argument("--latent_dim", type=int, default=1024,
+                            help="dimension of the latent feature representation")
+        parser.add_argument("--n_features", type=int, default=5,
+                            help="number of different features")
+        parser.add_argument("--hd_objs", type=bool, default=True,
+                            help="object level placeholders")
+        parser.add_argument("--hd_features", type=bool, default=True,
+                            help="feature level placeholders")
+        parser.add_argument("--kld_coef", type=float, default=0.001,
+                            help="kl loss part coefficient")
         return parent_parser
 
     def __init__(self, image_size: Tuple[int, int, int] = (1, 64, 64),
@@ -41,15 +44,8 @@ class MultiDisDspritesVAE(pl.LightningModule):
                  feature_names: Optional[List] = None,
                  obj_names: Optional[List] = None,
                  kld_coef: float = 1.0,
-                 content_loss_path=None,
                  **kwargs):
         super().__init__()
-
-        # # Content loss
-        # if content_loss_path is not None:
-        #     self.cl_model = self.load_cl_model(content_loss_path)
-
-        self.step_n = 0
 
         self.image_size = image_size
         self.latent_dim = latent_dim
@@ -63,7 +59,8 @@ class MultiDisDspritesVAE(pl.LightningModule):
         self.hd_objs = hd_objs
         self.hd_features = hd_features
 
-        # placeholder vectors for multiplication on object features
+        # placeholder vectors -> (1, 5, 1024) for multiplication on object features
+        # ready to .expand()
         if self.hd_features:
             if feature_names is None:
                 self.feature_names = ['shape', 'size', 'rotation', 'posx', 'posy']
@@ -74,10 +71,9 @@ class MultiDisDspritesVAE(pl.LightningModule):
                                                  init_vectors=self.feature_names)
             self.feature_placeholders = torch.Tensor(features_im.memory).float().to(self.device)
             self.feature_placeholders = self.feature_placeholders.unsqueeze(0)
-            # size = (1, 5, 1024)
-            # ready to .expand()
 
-        # placeholder vector for multiplication on objects
+        # placeholder vector -> (2, 1024) = [1024, 1024] for multiplication on objects
+        # ready to .expand()
         if self.hd_objs:
             if obj_names is None:
                 self.obj_names = ['obj1', 'obj2']
@@ -88,8 +84,6 @@ class MultiDisDspritesVAE(pl.LightningModule):
                                              init_vectors=self.obj_names)
             self.obj_placeholders = [torch.Tensor(objs_im.get_vector(name).vector).float().to(self.device) for name in
                                      self.obj_names]
-            # size =  [1024, 1024]
-            # ready to .expand()
 
         self.save_hyperparameters()
 
@@ -99,37 +93,24 @@ class MultiDisDspritesVAE(pl.LightningModule):
             eps = torch.randn_like(std)
             return mu + std * eps
         else:
-            # Test mode
             return mu
 
-    def encode_features(self, img):
+    def encode_features(self, image):
         """Multiply img features on feature placeholders"""
-        mu, log_var = self.encoder(img)
+        mu, log_var = self.encoder(image)
 
-        # z -> (128, 5,  1024)
+        # z -> (-1, 5,  1024)
         z = self.reparameterize(mu, log_var)
         z = z.view(-1, 5, self.latent_dim)
 
         if self.hd_features:
-            # mask -> (128, 5, 1024)
+            # mask -> (-1, 5, 1024)
             mask = self.feature_placeholders.expand(z.size()).to(self.device)
             z = z * mask
-        return mu, log_var, z
-
-    def encode_features_latent(self, img):
-        """Multiply img features on feature placeholders"""
-        mu, log_var = self.encoder(img)
-
-        # z -> (128, 5,  1024)
-        z = self.reparameterize(mu, log_var)
-        z = z.view(-1, 5, self.latent_dim)
-
-        # mask -> (128, 5, 1024)
-        mask = self.feature_placeholders.expand(z.size()).to(self.device)
-
-        z = z * mask
-
-        return z
+        if self.training:
+            return mu, log_var, z
+        else:
+            return z
 
     def encode_scene(self, z1, z2):
         batch_size = z1.shape[0]
@@ -145,22 +126,9 @@ class MultiDisDspritesVAE(pl.LightningModule):
 
         return scene
 
-    def content_loss(self, scene, reconstructed):
-        _, conv1_s, conv2_s, conv3_s, conv4_s = self.cl_model.encoder(scene)
-        _, conv1_r, conv2_r, conv3_r, conv4_r = self.cl_model.encoder(reconstructed)
-        loss = torch.nn.MSELoss()
-        loss_1 = loss(conv1_r, conv1_s)
-        loss_2 = loss(conv2_r, conv2_s)
-        loss_3 = loss(conv3_r, conv3_s)
-        loss_4 = loss(conv4_r, conv4_s)
-
-        return loss_1, loss_2, loss_3, loss_4
-
     def training_step(self, batch):
         """Function exchanges objects from scene1 to scene2"""
         scene1, scene2, fist_obj, pair_obj, second_obj, exchange_label = batch
-
-        batch_size = scene1.shape[0]
 
         # Encode features
         mu1, log_var1, feat_1 = self.encode_features(fist_obj)
